@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
@@ -59,12 +63,14 @@ import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -87,244 +93,113 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.firstapplication.ui.theme.FirstApplicationTheme
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
-            ScaffoldExample()
+            AppNavigation()
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ScaffoldExample() {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        titleContentColor = MaterialTheme.colorScheme.primary
-                    ),
-                    title = {
-                        Text(text = "My top bar.", textAlign = TextAlign.Center)
-                    })
-            },
+    fun AppNavigation() {
+        val navController = rememberNavController()
 
-            bottomBar = {
-                BottomAppBar(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    content = {
-                        Text(text = "My bottom bar")
-                    }
+        NavHost(navController = navController, startDestination = "Screen1") {
+            composable("Screen1") { Screen1(navController) }
+            composable("Screen2/{data}") { backStackEntry ->
+                Screen2(
+                    navController = navController,
+                    nametxt = backStackEntry.arguments?.getString("data") ?: ""
                 )
-            },
-
-            floatingActionButton = {
-                FloatingActionButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Default.Add, contentDescription = "FloatingButton")
-                }
-            },
-            content = {
-                Column(modifier = Modifier.padding(it)) {
-                    CardExample()
-
-                    Divider(thickness = 2.dp)
-
-                    ChipExample()
-
-                    Divider(thickness = 2.dp)
-
-                    BottomSheetExample()
-
-                    Divider(thickness = 2.dp)
-
-                    ProgressIndicatorExample()
-
-                    Divider(thickness = 2.dp)
-
-                    SliderExample()
-
-                    Divider(thickness = 2.dp)
-
-                    SwitchExample()
-
-                    Divider(thickness = 2.dp)
-
-                    CheckboxExample()
-                }
             }
-        )
+            composable("Screen3/{data}/{text}") { backStackEntry ->
+                Screen3(
+                    navController = navController,
+                    nametxt = backStackEntry.arguments?.getString("data") ?: "",
+                    agetxt = backStackEntry.arguments?.getString("text") ?: ""
+                )
+            }
+        }
     }
 
     @Composable
-    fun CardExample() {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color.Red),
+    fun Screen1(navController: NavController) {
+        var nametxt by remember {
+            mutableStateOf("")
+        }
+
+        Column(
             modifier = Modifier
-                .size(width = 500.dp, height = 150.dp)
-                .padding(10.dp)
+                .fillMaxSize()
+                .padding(20.dp)
         ) {
-            Text(
-                text = "Simple Card Example.",
-                modifier = Modifier.padding(20.dp),
-                textAlign = TextAlign.Center
+            TextField(
+                value = nametxt,
+                onValueChange = { nametxt = it },
+                label = { Text(text = "Enter Name") },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = "e.g.- Jajnesh") }
             )
-            Icon(
-                Icons.Sharp.CheckCircle,
-                contentDescription = "CardIcon",
-                modifier = Modifier.padding(start = 20.dp)
-            )
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ChipExample() {
-        Column(modifier = Modifier.padding(10.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AssistChip(
-                    onClick = { /*TODO*/ },
-                    label = { Text(text = "Assist Chip") },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Filled.Settings,
-                            contentDescription = "AssistChip",
-                            Modifier.size(AssistChipDefaults.IconSize)
-                        )
-                    }
-                )
-
-                var selected by remember {
-                    mutableStateOf(false)
-                }
-                FilterChip(
-                    selected = selected,
-                    onClick = { selected = !selected },
-                    label = { Text(text = "Filter Chip") },
-                    leadingIcon = {
-                        if (selected) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = "AssistChip",
-                                Modifier.size(AssistChipDefaults.IconSize)
-                            )
-                        } else {
-                            null
-                        }
-                    }
-                )
-            }
-
-
-            ElevatedSuggestionChip(
-                onClick = { },
-                label = { Text(text = "Elevated Suggestion Chip") }
-            )
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun BottomSheetExample() {
-        var showBottomSheet by remember {
-            mutableStateOf(false)
-        }
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = false
-        )
-        Column(modifier = Modifier.padding(10.dp)) {
-            Button(onClick = { showBottomSheet = true }) {
-                Text(text = "Show Bottom Sheet")
-            }
-
-            if (showBottomSheet) {
-                ModalBottomSheet(
-                    modifier = Modifier.fillMaxHeight(),
-                    sheetState = sheetState,
-                    onDismissRequest = { showBottomSheet = false }) {
-                    Text(text = "This is a modal bottom sheet.", modifier = Modifier.padding(20.dp))
-                }
+            Button(onClick = { navController.navigate("Screen2/$nametxt") }) {
+                Text(text = "Next")
             }
         }
     }
 
     @Composable
-    fun ProgressIndicatorExample() {
-        var loading by remember {
-            mutableStateOf(false)
-        }
-        var mText by remember {
-            mutableStateOf("Start loading")
+    fun Screen2(navController: NavController, nametxt: String) {
+        var agetxt by remember {
+            mutableStateOf("")
         }
 
-        Row(
-            modifier = Modifier.padding(10.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
         ) {
-            Button(onClick = {
-                if (mText == "Start loading") {
-                    loading = true
-                    mText = "Cancel"
-                } else if (mText == "Cancel") {
-                    loading = false
-                    mText = "Start loading"
+            OutlinedTextField(
+                value = agetxt,
+                onValueChange = { agetxt = it },
+                label = { Text(text = "Enter Age") },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = "e.g.- 21") }
+            )
+            Row {
+                OutlinedButton(onClick = { navController.popBackStack() }) {
+                    Text(text = "Previous")
                 }
-            }) {
-                Text(text = mText)
-            }
-
-            if (loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.width(50.dp),
-                    color = MaterialTheme.colorScheme.secondary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                OutlinedButton(onClick = { navController.navigate("Screen3/$nametxt/$agetxt") }) {
+                    Text(text = "Next")
+                }
             }
         }
     }
 
     @Composable
-    fun SliderExample() {
-        var sliderPosition by remember {
-            mutableFloatStateOf(0f)
-        }
-        
-        Column (modifier = Modifier.padding(30.dp,3.dp)) {
-            Slider(value = sliderPosition, onValueChange = {sliderPosition = it})
-            Text(text = sliderPosition.toString())
-        }
-    }
-
-    @Composable
-    fun SwitchExample() {
-        var checked by remember {
-            mutableStateOf(true)
-        }
-
-        Column (modifier = Modifier.padding(10.dp)) {
-            Switch(
-                checked = checked,
-                onCheckedChange = {checked = it}
-            )
-        }
-    }
-
-    @Composable
-    fun CheckboxExample() {
-        var checked by remember {
-            mutableStateOf(true)
-        }
-
-        Row (verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = checked, onCheckedChange = {checked = it})
-            Text(
-                if (checked) "Checked" else "Unchecked"
-            )
+    fun Screen3(navController: NavController, nametxt: String, agetxt: String) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ) {
+            if (agetxt.toInt() >= 18) {
+                Text(text = "Congrats, $nametxt. You are eligible to vote.")
+            } else {
+                Text(text = "Too bad, $nametxt. Come back when you are at least 18 years old.")
+            }
+            OutlinedButton(onClick = { navController.popBackStack() }) {
+                Text(text = "Previous")
+            }
         }
     }
 }
