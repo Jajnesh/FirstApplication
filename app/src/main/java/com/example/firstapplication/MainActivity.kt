@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.sharp.CheckCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -36,12 +39,15 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ElevatedSuggestionChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -82,10 +88,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,6 +103,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -106,99 +117,134 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            AppNavigation()
-        }
-    }
+            Column (modifier = Modifier.padding(25.dp)) {
+                ElevatedCard(
+                    modifier = Modifier
+                        .height(500.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(Color(235, 238, 255))
+                ) {
+                    Column (
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Jetpack Compose",
+                            color = Color(22, 78, 120),
+                            modifier = Modifier.padding(top = 20.dp),
+                            fontSize = 27.sp
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.jetpackicon),
+                            contentDescription = "Jetpack_Logo",
+                            modifier = Modifier.size(100.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Text(
+                            text = "Login",
+                            color = Color(46, 115, 57),
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .fillMaxWidth(),
+                            fontSize = 32.sp,
+                            textAlign = TextAlign.Start
+                        )
 
-    @Composable
-    fun AppNavigation() {
-        val navController = rememberNavController()
+                        var username by remember {
+                            mutableStateOf("")
+                        }
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            label = { Text("Email ID or Mobile Number") },
+                            maxLines = 1
+                        )
 
-        NavHost(navController = navController, startDestination = "Screen1") {
-            composable("Screen1") { Screen1(navController) }
-            composable("Screen2/{data}") { backStackEntry ->
-                Screen2(
-                    navController = navController,
-                    nametxt = backStackEntry.arguments?.getString("data") ?: ""
-                )
-            }
-            composable("Screen3/{data}/{text}") { backStackEntry ->
-                Screen3(
-                    navController = navController,
-                    nametxt = backStackEntry.arguments?.getString("data") ?: "",
-                    agetxt = backStackEntry.arguments?.getString("text") ?: ""
-                )
-            }
-        }
-    }
+                        Spacer(modifier = Modifier.height(15.dp))
 
-    @Composable
-    fun Screen1(navController: NavController) {
-        var nametxt by remember {
-            mutableStateOf("")
-        }
+                        var showPassword by remember {
+                            mutableStateOf(false)
+                        }
+                        var password by remember {
+                            mutableStateOf("")
+                        }
+                        val passwordVisualTransformation = remember { PasswordVisualTransformation() }
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            label = { Text(text = "Password")},
+                            maxLines = 1,
+                            visualTransformation = if (showPassword) {
+                                VisualTransformation.None
+                            } else {
+                                passwordVisualTransformation
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    if (showPassword) {
+                                        Icons.Filled.Visibility
+                                    } else {
+                                        Icons.Filled.VisibilityOff
+                                    },
+                                    contentDescription = "Visibility_Icon",
+                                    modifier = Modifier.clickable { showPassword = !showPassword }
+                                )
+                            }
+                        )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            TextField(
-                value = nametxt,
-                onValueChange = { nametxt = it },
-                label = { Text(text = "Enter Name") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = "e.g.- Jajnesh") }
-            )
-            Button(onClick = { navController.navigate("Screen2/$nametxt") }) {
-                Text(text = "Next")
-            }
-        }
-    }
+                        Text(
+                            text = "Forgot Password?",
+                            color = Color(46, 100, 57),
+                            fontSize = 15.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(15.dp)
+                                .clickable {  },
+                            textAlign = TextAlign.End,
+                        )
 
-    @Composable
-    fun Screen2(navController: NavController, nametxt: String) {
-        var agetxt by remember {
-            mutableStateOf("")
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            OutlinedTextField(
-                value = agetxt,
-                onValueChange = { agetxt = it },
-                label = { Text(text = "Enter Age") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = "e.g.- 21") }
-            )
-            Row {
-                OutlinedButton(onClick = { navController.popBackStack() }) {
-                    Text(text = "Previous")
+                        Row (modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 15.dp)){
+                            Button(
+                                onClick = { /*TODO*/ },
+                                colors = ButtonDefaults.buttonColors(Color(22, 78, 120)),
+                                modifier = Modifier
+                                    .width(120.dp)
+                                    .height(60.dp)
+                            ) {
+                                Text(text = "Login", fontSize = 18.sp)
+                            }
+                        }
+                    }
                 }
-                OutlinedButton(onClick = { navController.navigate("Screen3/$nametxt/$agetxt") }) {
-                    Text(text = "Next")
-                }
-            }
-        }
-    }
 
-    @Composable
-    fun Screen3(navController: NavController, nametxt: String, agetxt: String) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            if (agetxt.toInt() >= 18) {
-                Text(text = "Congrats, $nametxt. You are eligible to vote.")
-            } else {
-                Text(text = "Too bad, $nametxt. Come back when you are at least 18 years old.")
-            }
-            OutlinedButton(onClick = { navController.popBackStack() }) {
-                Text(text = "Previous")
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row {
+                        Text(
+                            text = "Don't have an account?",
+                            fontSize = 16.sp
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Register",
+                            color = Color(22, 78, 180),
+                            modifier = Modifier.clickable {},
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
     }
