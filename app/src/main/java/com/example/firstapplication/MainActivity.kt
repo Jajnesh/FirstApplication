@@ -57,7 +57,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.Async
 import retrofit2.Retrofit
@@ -68,18 +70,20 @@ import retrofit2.http.GET
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalFoundationApi::class)
-    private val productVM: ProductViewModel by viewModels()
+    private val userVM: UserViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
         setContent {
-            val products by productVM.products.observeAsState(emptyList())
-            Surface(modifier = Modifier.fillMaxSize().padding(5.dp), color = MaterialTheme.colorScheme.background) {
+            val users by userVM.users.observeAsState(emptyList())
+            Surface(modifier = Modifier
+                .fillMaxSize()
+                .padding(5.dp), color = MaterialTheme.colorScheme.background) {
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Fixed(2)
                 ) {
-                    items(products) {product ->
-                        ProductItem(product = product)
+                    items(users) {user ->
+                        UserItem(user = user)
                     }
                 }
             }
@@ -87,7 +91,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ProductItem(product: Product) {
+    fun UserItem(user: User) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,11 +103,13 @@ class MainActivity : ComponentActivity() {
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AsyncImage(model= product.image, contentDescription = "Unable to load at the moment")
+                Text(text = user.username, color = Color(128,99,250))
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = product.title, color = Color.Blue)
+                Text(text = user.email, color = Color.Blue)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = product.category)
+                Text(text = user.phone, color = Color(78,95,60))
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = user.name.fname, color = Color.Magenta)
             }
         }
     }
@@ -111,24 +117,23 @@ class MainActivity : ComponentActivity() {
 
 
 //Model Class
-data class  Product(
-    val id: Int,
-    val title: String,
-    val price: Double,
-    val description: String,
-    val category: String,
-    val image: String,
-    val rating: Rating
+data class User(
+    val email: String,
+    val username: String,
+    val phone: String,
+    val name: Name
 )
 
-data class Rating(
-    val rate: Float,
-    val count: Int
+data class Name(
+    @SerializedName("firstname")
+    val fname: String,
+    @SerializedName("lastname")
+    val lname: String
 )
 
 interface  ApiService {
-    @GET("products")
-    suspend fun getProducts(): List<Product>
+    @GET("users")
+    suspend fun getUsers(): List<User>
 }
 
 object RetrofitClient {
@@ -143,27 +148,26 @@ object RetrofitClient {
     }
 }
 
-class ProductRepository(private val apiService: ApiService) {
-    suspend fun getProducts(): List<Product> {
-        return apiService.getProducts()
+class UserRepository(private val apiService: ApiService) {
+    suspend fun getUsers(): List<User> {
+        return apiService.getUsers()
     }
 }
 
-class ProductViewModel: ViewModel() {
-    private  val _products = MutableLiveData<List<Product>>()
-    val products: LiveData<List<Product>> get() = _products
+class UserViewModel: ViewModel() {
+    private  val _users = MutableLiveData<List<User>>()
+    val users: LiveData<List<User>> get() = _users
 
-    private  val repository = ProductRepository(RetrofitClient.apiService)
+    private  val repository = UserRepository(RetrofitClient.apiService)
     init {
-        fetchProducts()
+        fetchUsers()
     }
 
-    fun fetchProducts() {
+    fun fetchUsers() {
         viewModelScope.launch {
             try {
-                val productList = repository.getProducts()
-                _products.postValue(productList)
-                println(productList)
+                val userList = repository.getUsers()
+                _users.postValue(userList)
 
             } catch (e: Exception) {
 
