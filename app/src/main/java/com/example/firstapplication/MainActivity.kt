@@ -1,11 +1,12 @@
 package com.example.firstapplication
 
+import android.R.attr.start
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,162 +16,181 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
-import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.launch
-import org.jetbrains.annotations.Async
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.create
-import retrofit2.http.GET
 
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalFoundationApi::class)
-    private val userVM: UserViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
         setContent {
-            val users by userVM.users.observeAsState(emptyList())
-            Surface(modifier = Modifier
-                .fillMaxSize()
-                .padding(5.dp), color = MaterialTheme.colorScheme.background) {
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(2)
-                ) {
-                    items(users) {user ->
-                        UserItem(user = user)
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    fun UserItem(user: User) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-        ) {
-            Column(
+            val gColor = listOf(
+                Color(4, 2, 29),
+                Color(186, 25, 223, 255),
+                Color(4, 2, 29)
+            )
+            val txtColor = Color.White
+            Column (
                 modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(),
+                    .fillMaxSize()
+                    .background(Brush.linearGradient(gColor)),
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = user.username, color = Color(128,99,250))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = user.email, color = Color.Blue)
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = user.phone, color = Color(78,95,60))
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = user.name.fname, color = Color.Magenta)
-            }
-        }
-    }
-}
+                OutlinedCard(
+                    modifier = Modifier
+                        .height(500.dp)
+                        .padding(25.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.outlinedCardColors(Color.Transparent),
+                    border = BorderStroke(2.dp,color = Color.White)
+                ) {
+                    Column (
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "NeuroBeats",
+                            color = txtColor,
+                            modifier = Modifier.padding(top = 20.dp),
+                            fontSize = 35.sp
+                        )
+                        Spacer(modifier = Modifier.height(25.dp))
+                        Text(
+                            text = "Login",
+                            color = txtColor,
+                            modifier = Modifier.padding(20.dp),
+                            fontSize = 32.sp,
+                            textAlign = TextAlign.Start
+                        )
 
+                        var username by remember {
+                            mutableStateOf("")
+                        }
+                        OutlinedTextField(
+                            value = username,
+                            onValueChange = { username = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            label = { Text("Email ID or Mobile Number", color = txtColor) },
+                            maxLines = 1,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = txtColor,
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White,
+                                unfocusedTextColor = txtColor
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(15.dp))
+                        var showPassword by remember {
+                            mutableStateOf(false)
+                        }
+                        var password by remember {
+                            mutableStateOf("")
+                        }
+                        val passwordVisualTransformation = remember { PasswordVisualTransformation() }
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 15.dp),
+                            label = { Text(text = "Password", color = txtColor)},
+                            maxLines = 1,
+                            visualTransformation = if (showPassword) {
+                                VisualTransformation.None
+                            } else {
+                                passwordVisualTransformation
+                            },
+                            trailingIcon = {
+                                Icon(
+                                    if (showPassword) {
+                                        Icons.Filled.Visibility
+                                    } else {
+                                        Icons.Filled.VisibilityOff
+                                    },
+                                    contentDescription = "Visibility_Icon",
+                                    modifier = Modifier.clickable { showPassword = !showPassword },
+                                    tint = txtColor
+                                )
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = txtColor,
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White,
+                                unfocusedTextColor = txtColor
+                            )
+                        )
+                        Row ( modifier = Modifier.fillMaxWidth().padding(15.dp), horizontalArrangement = Arrangement.End ) {
+                            Text(
+                                text = "Forgot Password?",
+                                color = txtColor,
+                                fontSize = 15.sp,
+                                modifier = Modifier.clickable { }
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = {  },
+                            colors = ButtonDefaults.buttonColors(txtColor),
+                            modifier = Modifier
+                                .width(120.dp)
+                                .height(55.dp)
+                        ) {
+                            Text(text = "Login", fontSize = 18.sp, color = Color(4, 2, 29, 255))
+                        }
+                    }
+                }
 
-//Model Class
-data class User(
-    val email: String,
-    val username: String,
-    val phone: String,
-    val name: Name
-)
+                Spacer(modifier = Modifier.height(20.dp))
 
-data class Name(
-    @SerializedName("firstname")
-    val fname: String,
-    @SerializedName("lastname")
-    val lname: String
-)
-
-interface  ApiService {
-    @GET("users")
-    suspend fun getUsers(): List<User>
-}
-
-object RetrofitClient {
-    private const val BASE_URL = "https://fakestoreapi.com/"
-
-    val  apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
-    }
-}
-
-class UserRepository(private val apiService: ApiService) {
-    suspend fun getUsers(): List<User> {
-        return apiService.getUsers()
-    }
-}
-
-class UserViewModel: ViewModel() {
-    private  val _users = MutableLiveData<List<User>>()
-    val users: LiveData<List<User>> get() = _users
-
-    private  val repository = UserRepository(RetrofitClient.apiService)
-    init {
-        fetchUsers()
-    }
-
-    fun fetchUsers() {
-        viewModelScope.launch {
-            try {
-                val userList = repository.getUsers()
-                _users.postValue(userList)
-
-            } catch (e: Exception) {
-
+                Column (
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row {
+                        Text(
+                            text = "Don't have an account?",
+                            fontSize = 16.sp,
+                            color = txtColor
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Register",
+                            color = Color(230, 124, 255, 255),
+                            modifier = Modifier.clickable {},
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
         }
     }
